@@ -35,9 +35,12 @@ bat     = "latest"
 eza     = "latest"
 zoxide  = "latest"
 gh      = "latest"
+neovim  = "latest"
 # musl variants: statically linked, work on older GLIBC (Debian bookworm etc.)
-"github:sxyazi/yazi"      = { version = "latest", exe = "yazi",  matching = "musl" }
-"github:dandavison/delta" = { version = "latest", exe = "delta", matching = "musl" }
+# - asset_pattern: explicit format suffix to exclude .deb (which also contains "musl")
+# - version_prefix = "": delta tags are bare "0.19.2", not "v0.19.2"
+"github:sxyazi/yazi"      = { version = "latest", exe = "yazi",  asset_pattern = "*linux-musl.zip" }
+"github:dandavison/delta" = { version = "latest", exe = "delta", asset_pattern = "*linux-musl.tar.gz", version_prefix = "" }
 EOF
 
 log "Installing tools per config.toml..."
@@ -86,6 +89,16 @@ fi
 EOF
 )"
 
+write_block "# >>> editor" "# <<< editor" "$(cat <<EOF
+# >>> editor (managed by dotfiles bootstrap)
+if command -v nvim >/dev/null 2>&1; then
+  export EDITOR=nvim
+  export VISUAL=nvim
+fi
+# <<< editor
+EOF
+)"
+
 write_block "# >>> fzf" "# <<< fzf" "$(cat <<EOF
 # >>> fzf key bindings (managed by dotfiles bootstrap)
 if command -v fzf >/dev/null 2>&1; then
@@ -108,7 +121,33 @@ fi
 EOF
 )"
 
-# --- 4. Verify ---
+# --- 4. Neovim config (init.lua is owned by this script) ---
+log "Writing ~/.config/nvim/init.lua..."
+mkdir -p "$HOME/.config/nvim"
+cat > "$HOME/.config/nvim/init.lua" <<'EOF'
+-- Managed by dotfiles/bootstrap.sh — edits here will be overwritten.
+
+-- 表示
+vim.opt.number = true          -- 行番号
+vim.opt.cursorline = true      -- カーソル行をハイライト
+vim.opt.termguicolors = true   -- 24bit カラー
+vim.opt.signcolumn = 'yes'     -- 左端の余白を常に確保
+
+-- 検索
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+
+-- 操作
+vim.opt.mouse = 'a'
+vim.opt.clipboard = 'unnamedplus'  -- OSC52 経由でホストのクリップボードへ
+
+-- インデント
+vim.opt.expandtab = true
+vim.opt.shiftwidth = 2
+vim.opt.tabstop = 2
+EOF
+
+# --- 5. Verify ---
 log "Installed:"
 mise ls
 
@@ -116,7 +155,7 @@ log "Sanity check (PATH resolution):"
 ok=1
 for entry in \
   "lazygit:lazygit" "ripgrep:rg" "fzf:fzf" "fd:fd" "yazi:yazi" \
-  "bat:bat" "eza:eza" "zoxide:zoxide" "gh:gh" "delta:delta"; do
+  "bat:bat" "eza:eza" "zoxide:zoxide" "gh:gh" "delta:delta" "neovim:nvim"; do
   name="${entry%%:*}"; bin="${entry##*:}"
   if path="$(command -v "$bin" 2>/dev/null)"; then
     printf '  ok   %-8s -> %s\n' "$bin" "$path"

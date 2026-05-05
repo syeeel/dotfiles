@@ -11,6 +11,7 @@ Installs everything under `$HOME` via [mise](https://mise.jdx.dev/) — no root 
 - **bat**, **eza** — `cat` / `ls` replacements
 - **zoxide** — smarter `cd`
 - **gh** — GitHub CLI
+- **neovim** — editor (minimal `init.lua` managed by bootstrap)
 
 ## Usage
 
