@@ -147,7 +147,28 @@ vim.opt.shiftwidth = 2
 vim.opt.tabstop = 2
 EOF
 
-# --- 5. Verify ---
+# --- 5. Yazi config (yazi.toml is owned by this script) ---
+log "Writing ~/.config/yazi/yazi.toml..."
+mkdir -p "$HOME/.config/yazi"
+cat > "$HOME/.config/yazi/yazi.toml" <<'EOF'
+# Managed by dotfiles/bootstrap.sh — edits here will be overwritten.
+[mgr]
+ratio = [1, 2, 6]
+show_hidden = true
+
+[opener]
+edit = [
+  { run = 'nvim --clean "$@"', block = true, for = "unix" },
+]
+
+[open]
+rules = [
+  { mime = "text/*", use = "edit" },
+  { name = "*", use = "edit" },
+]
+EOF
+
+# --- 6. Verify ---
 log "Installed:"
 mise ls
 
