@@ -145,6 +145,55 @@ vim.opt.clipboard = 'unnamedplus'  -- OSC52 経由でホストのクリップボ
 vim.opt.expandtab = true
 vim.opt.shiftwidth = 2
 vim.opt.tabstop = 2
+
+-- リーダーキー (lazy.nvim より前に設定)
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
+
+-- lazy.nvim を自動ブートストラップ
+local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  vim.fn.system({
+    'git', 'clone', '--filter=blob:none', '--branch=stable',
+    'https://github.com/folke/lazy.nvim.git', lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
+
+require('lazy').setup({
+  {
+    'folke/tokyonight.nvim',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      vim.cmd.colorscheme('tokyonight-night')
+    end,
+  },
+  {
+    'nvim-treesitter/nvim-treesitter',
+    branch = 'master',
+    build = ':TSUpdate',
+    config = function()
+      require('nvim-treesitter.configs').setup({
+        ensure_installed = {
+          'bash', 'c', 'lua', 'vim', 'vimdoc', 'query',
+          'go', 'gomod', 'gosum',
+          'python', 'rust',
+          'javascript', 'typescript', 'tsx', 'html', 'css',
+          'json', 'yaml', 'toml',
+          'markdown', 'markdown_inline',
+          'dockerfile', 'make', 'diff', 'gitcommit',
+        },
+        auto_install = false,
+        highlight = { enable = true },
+        indent = { enable = true },
+      })
+    end,
+  },
+}, {
+  install = { colorscheme = { 'tokyonight-night' } },
+  checker = { enabled = false },
+})
 EOF
 
 # --- 5. Yazi config (yazi.toml is owned by this script) ---
@@ -158,13 +207,13 @@ show_hidden = true
 
 [opener]
 edit = [
-  { run = 'nvim --clean "$@"', block = true, for = "unix" },
+  { run = 'nvim "$@"', block = true, for = "unix" },
 ]
 
 [open]
 rules = [
   { mime = "text/*", use = "edit" },
-  { name = "*", use = "edit" },
+  { url = "*", use = "edit" },
 ]
 EOF
 
