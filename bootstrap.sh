@@ -37,10 +37,24 @@ zoxide  = "latest"
 gh      = "latest"
 neovim  = "latest"
 # musl variants: statically linked, work on older GLIBC (Debian bookworm etc.)
-# - asset_pattern: explicit format suffix to exclude .deb (which also contains "musl")
+# - per-platform asset_pattern: `*linux-musl.*` glob matches both x86_64 and
+#   aarch64 assets, and mise picks the first hit — which on ARM64 hosts is
+#   often the x86_64 binary (causes QEMU fallback + os error 38). Pin per arch.
 # - version_prefix = "": delta tags are bare "0.19.2", not "v0.19.2"
-"github:sxyazi/yazi"      = { version = "latest", exe = "yazi",  asset_pattern = "*linux-musl.zip" }
-"github:dandavison/delta" = { version = "latest", exe = "delta", asset_pattern = "*linux-musl.tar.gz", version_prefix = "" }
+[tools."github:sxyazi/yazi"]
+version = "latest"
+exe = "yazi"
+[tools."github:sxyazi/yazi".platforms]
+linux-x64   = { asset_pattern = "*x86_64-unknown-linux-musl.zip" }
+linux-arm64 = { asset_pattern = "*aarch64-unknown-linux-musl.zip" }
+
+[tools."github:dandavison/delta"]
+version = "latest"
+exe = "delta"
+version_prefix = ""
+[tools."github:dandavison/delta".platforms]
+linux-x64   = { asset_pattern = "*x86_64-unknown-linux-musl.tar.gz" }
+linux-arm64 = { asset_pattern = "*aarch64-unknown-linux-musl.tar.gz" }
 EOF
 
 log "Installing tools per config.toml..."
