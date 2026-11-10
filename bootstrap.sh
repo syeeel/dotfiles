@@ -36,28 +36,12 @@ eza     = "latest"
 zoxide  = "latest"
 gh      = "latest"
 neovim  = "latest"
-# Per-platform asset_pattern: a bare `*linux-musl.*` glob matches both x86_64
-# and aarch64 assets, and mise picks the first hit — which on ARM64 hosts is
-# often the x86_64 binary (causes QEMU fallback + os error 38). Pin per arch.
-# yazi ships musl for both arches (static, runs on older GLIBC); delta does not
-# (see below), so they use different asset families.
-[tools."github:sxyazi/yazi"]
-version = "latest"
-exe = "yazi"
-[tools."github:sxyazi/yazi".platforms]
-linux-x64   = { asset_pattern = "*x86_64-unknown-linux-musl.zip" }
-linux-arm64 = { asset_pattern = "*aarch64-unknown-linux-musl.zip" }
-
-# delta ships no aarch64 musl asset (only x86_64 has musl), so pin both
-# arches to the gnu build. Debian bookworm+ GLIBC is new enough to run it.
-# version_prefix = "": delta tags are bare "0.19.2", not "v0.19.2".
-[tools."github:dandavison/delta"]
-version = "latest"
-exe = "delta"
-version_prefix = ""
-[tools."github:dandavison/delta".platforms]
-linux-x64   = { asset_pattern = "*x86_64-unknown-linux-gnu.tar.gz" }
-linux-arm64 = { asset_pattern = "*aarch64-unknown-linux-gnu.tar.gz" }
+# yazi / delta are in mise's registry (aqua backend), which resolves the right
+# per-arch asset on its own — no asset_pattern pinning needed. Do NOT switch
+# these to the `github:` backend: it rejects `exe`/`version_prefix`, and because
+# `mise install` is atomic a single rejected option aborts every other tool too.
+yazi    = "latest"
+delta   = "latest"
 EOF
 
 log "Installing tools per config.toml..."
